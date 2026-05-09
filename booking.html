@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CineMagic | Secure Booking</title>
+    <style>
+        body { font-family: sans-serif; background: #141414; color: white; padding: 40px; }
+        .flex-container { display: flex; gap: 40px; flex-wrap: wrap; }
+        .form-box, .list-box { background: #222; padding: 30px; border-radius: 10px; flex: 1; min-width: 300px; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; background: #333; color: white; border: 1px solid #444; border-radius: 5px; }
+        button { background: #e50914; border: none; font-weight: bold; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #444; }
+        th { color: #e50914; }
+        .success { color: #46d369; }
+    </style>
+</head>
+<body>
+    <div class="flex-container">
+        <div class="form-box">
+            <h2>Complete Your Booking</h2>
+            <form id="bookingForm">
+                <input type="text" id="movieName" readonly>
+                <input type="text" id="custName" placeholder="Your Full Name" required>
+                <input type="number" id="seats" placeholder="Number of Seats" min="1" max="10" required>
+                <button type="submit">Confirm Ticket</button>
+            </form>
+            <p id="message"></p>
+        </div>
+
+        <div class="list-box">
+            <h2>Recent Bookings</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Movie</th>
+                        <th>Name</th>
+                        <th>Seats</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 1. Auto-fill movie name from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        document.getElementById('movieName').value = urlParams.get('movie') || "Select a Movie";
+
+        // 2. Fetch and display existing bookings
+        async function loadBookings() {
+            const response = await fetch('http://localhost:3000/bookings');
+            const bookings = await response.json();
+            const tableBody = document.getElementById('bookingTableBody');
+            tableBody.innerHTML = bookings.map(b => `
+                <tr>
+                    <td>${b.movie_name}</td>
+                    <td>${b.customer_name}</td>
+                    <td>${b.seats}</td>
+                    <td>${new Date(b.booking_date).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // 3. Handle Form Submit
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                movie_name: document.getElementById('movieName').value,
+                customer_name: document.getElementById('custName').value,
+                seats: document.getElementById('seats').value
+            };
+
+            const response = await fetch('http://localhost:3000/book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if(response.ok) {
+                document.getElementById('message').innerHTML = "<span class='success'>Success! Ticket Booked.</span>";
+                loadBookings(); // Refresh the list
+            }
+        });
+
+        // Initial Load
+        loadBookings();
+    </script>
+</body>
+</html>

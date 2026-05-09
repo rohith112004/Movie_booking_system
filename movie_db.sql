@@ -1,0 +1,10 @@
+CREATE DATABASE IF NOT EXISTS movie_db;
+USE movie_db;
+
+CREATE TABLE  bookings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    movie_name VARCHAR(255) NOT NULL,
+    customer_name VARCHAR(255) NOT NULL,
+    seats INT NOT NULL,
+    booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
